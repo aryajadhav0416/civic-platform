@@ -3,6 +3,14 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
+/**
+ * POST handler for the AI Companion endpoint.
+ * Accepts a user message and a target language, and attempts to resolve the query
+ * using Google's Gemini (1.5 Flash). If Gemini fails, falls back to Groq (LLaMA 3.1).
+ *
+ * @param {Request} request - The incoming HTTP request.
+ * @returns {Promise<NextResponse>} JSON response containing the AI text.
+ */
 export async function POST(request: Request) {
   try {
     const { message, language } = await request.json();

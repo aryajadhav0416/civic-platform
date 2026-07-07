@@ -234,8 +234,8 @@ export default function Home() {
           </div>
         </div>
 
-        <nav className="nav-links">
-          <a href="#" className="nav-link active">{t.navHome}</a>
+        <nav className="nav-links" aria-label="Main Navigation">
+          <a href="#" className="nav-link active" aria-current="page">{t.navHome}</a>
           <a href="#" className="nav-link" onClick={(e) => { e.preventDefault(); setShowServicesModal(true); }}>{t.navServices}</a>
           <a href="#" className="nav-link" onClick={(e) => { e.preventDefault(); setShowMyComplaintsModal(true); fetchComplaints(); }}>{t.navComplaints}</a>
           <a href="#" className="nav-link" onClick={(e) => { e.preventDefault(); setShowResourcesModal(true); }}>{t.navResources}</a>
@@ -243,8 +243,8 @@ export default function Home() {
 
         <div className="header-actions">
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#F1F5F9', padding: '0.25rem 0.75rem', borderRadius: '8px', marginRight: '1rem' }}>
-            <Globe size={18} color="#475569" />
-            <select value={language} onChange={(e) => setLanguage(e.target.value)} style={{ background: 'transparent', border: 'none', outline: 'none', color: '#475569', fontWeight: 500, cursor: 'pointer', appearance: 'none', paddingRight: '1rem' }}>
+            <Globe size={18} color="#475569" aria-hidden="true" />
+            <select aria-label="Language selection" value={language} onChange={(e) => setLanguage(e.target.value)} style={{ background: 'transparent', border: 'none', outline: 'none', color: '#475569', fontWeight: 500, cursor: 'pointer', appearance: 'none', paddingRight: '1rem' }}>
               <option>English</option>
               <option>Hindi</option>
               <option>Marathi</option>
@@ -272,14 +272,15 @@ export default function Home() {
               type="text" 
               className="input-field" 
               placeholder={t.placeholderQuery} 
+              aria-label={t.placeholderQuery}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSend(query)}
             />
-            <button className="chat-voice-btn" onClick={handleListen} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem', padding: '0 0.5rem', opacity: isListening ? 1 : 0.7, color: isListening ? '#ef4444' : 'inherit' }} title={isListening ? t.btnVoiceListening : t.btnVoiceStart}>
+            <button aria-label="Start Voice Input" className="chat-voice-btn" onClick={handleListen} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem', padding: '0 0.5rem', opacity: isListening ? 1 : 0.7, color: isListening ? '#ef4444' : 'inherit' }} title={isListening ? t.btnVoiceListening : t.btnVoiceStart}>
               {isListening ? '🛑' : '🎤'}
             </button>
-            <button className="send-button" onClick={() => handleSend(query)} disabled={loading}>
+            <button aria-label="Send Message" className="send-button" onClick={() => handleSend(query)} disabled={loading}>
               {loading ? <Loader2 size={20} className="animate-spin" /> : <Send size={20} />}
             </button>
           </div>

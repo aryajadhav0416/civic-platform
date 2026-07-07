@@ -1,3 +1,8 @@
+/**
+ * Multilingual dictionary for the Civic Platform.
+ * Provides localized strings for English, Hindi, and Marathi.
+ * Supports dynamic rendering of text throughout the application.
+ */
 export const translations = {
   English: {
     navHome: "Home",
