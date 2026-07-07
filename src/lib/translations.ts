@@ -114,7 +114,11 @@ export const translations = {
     schGirlTitle: "Sukanya Samriddhi Yojana",
     schGirlDesc: "Savings scheme targeted at the parents of girl children.",
     schWomenTitle: "PM Matru Vandana Yojana (Maternity)",
-    schWomenDesc: "Maternity benefit program for pregnant and lactating mothers."
+    schWomenDesc: "Maternity benefit program for pregnant and lactating mothers.",
+    lblDraft: "Smart Draft (Describe simply)",
+    phDraft: "e.g., street light is broken on main road",
+    btnDraft: "Draft with AI",
+    lblDept: "Routed Department"
   },
   Hindi: {
     navHome: "होम",
@@ -219,7 +223,11 @@ export const translations = {
     schGirlTitle: "सुकन्या समृद्धि योजना",
     schGirlDesc: "बालिकाओं के माता-पिता को लक्षित बचत योजना।",
     schWomenTitle: "पीएम मातृ वंदना योजना (मातृत्व)",
-    schWomenDesc: "गर्भवती और स्तनपान कराने वाली माताओं के लिए मातृत्व लाभ कार्यक्रम।"
+    schWomenDesc: "गर्भवती और स्तनपान कराने वाली माताओं के लिए मातृत्व लाभ कार्यक्रम।",
+    lblDraft: "स्मार्ट ड्राफ्ट (आसानी से समझाएं)",
+    phDraft: "जैसे, मुख्य सड़क पर स्ट्रीट लाइट खराब है",
+    btnDraft: "AI से ड्राफ्ट करें",
+    lblDept: "संबंधित विभाग"
   },
   Marathi: {
     navHome: "मुख्यपृष्ठ",
@@ -324,6 +332,10 @@ export const translations = {
     schGirlTitle: "सुकन्या समृद्धी योजना",
     schGirlDesc: "मुलींच्या पालकांसाठी बचत योजना.",
     schWomenTitle: "पीएम मातृ वंदना योजना (मातृत्व)",
-    schWomenDesc: "गर्भवती आणि स्तनदा मातांसाठी मातृत्व लाभ कार्यक्रम."
+    schWomenDesc: "गर्भवती आणि स्तनदा मातांसाठी मातृत्व लाभ कार्यक्रम.",
+    lblDraft: "स्मार्ट ड्राफ्ट (सोप्या भाषेत सांगा)",
+    phDraft: "उदा., मुख्य रस्त्यावरील पथदिवे बंद आहेत",
+    btnDraft: "AI सह ड्राफ्ट करा",
+    lblDept: "संबंधित विभाग"
   }
 };
