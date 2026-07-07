@@ -185,7 +185,8 @@ export default function Home() {
         const { data, error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
         if (data.user) {
-          await supabase.from('profiles').insert([{ id: data.user.id, age: parseInt(signupAge), gender: signupGender }]);
+          const { error: profileError } = await supabase.from('profiles').upsert([{ id: data.user.id, age: parseInt(signupAge, 10) || 0, gender: signupGender }]);
+          if (profileError) console.error('Profile Upsert Error:', profileError);
           alert(t.alertSignup);
         }
       } else {
