@@ -48,6 +48,10 @@ export default function Home() {
   // Auth & Profile State
   const [user, setUser] = useState<{ id: string } | null>(null);
   const [profile, setProfile] = useState<{ age: number, gender?: string, points?: number } | null>(null);
+  const [showEditProfileModal, setShowEditProfileModal] = useState(false);
+  const [editAge, setEditAge] = useState('');
+  const [editGender, setEditGender] = useState('Male');
+  const [updatingProfile, setUpdatingProfile] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -203,6 +207,23 @@ export default function Home() {
     }
   };
 
+  const handleUpdateProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+    setUpdatingProfile(true);
+    try {
+      const { error } = await supabase.from('profiles').upsert([{ id: user.id, age: parseInt(editAge, 10) || 0, gender: editGender, points: profile?.points || 0 }]);
+      if (error) throw error;
+      alert("Profile updated successfully!");
+      setShowEditProfileModal(false);
+      fetchProfile(user.id);
+    } catch {
+      alert("Error updating profile");
+    } finally {
+      setUpdatingProfile(false);
+    }
+  };
+
   const handleSend = async (text: string) => {
     if (!text.trim()) return;
     setQuery('');
@@ -332,6 +353,7 @@ export default function Home() {
               <div style={{ background: '#FEF3C7', color: '#92400E', padding: '0.25rem 0.75rem', borderRadius: '20px', fontWeight: 'bold', fontSize: '0.85rem' }}>
                 🏆 Score: {profile?.points || 0}
               </div>
+              <button className="btn-secondary" style={{ padding: '0.5rem 1rem' }} onClick={() => { setEditAge(profile?.age?.toString() || ''); setEditGender(profile?.gender || 'Male'); setShowEditProfileModal(true); }}>Edit Profile</button>
               <button className="btn-secondary" style={{ padding: '0.5rem 1rem' }} onClick={() => supabase.auth.signOut()}>{t.signOut}</button>
             </div>
           ) : (
@@ -808,6 +830,45 @@ export default function Home() {
             <div className="modal-actions" style={{ marginTop: '1.5rem' }}>
               <button type="button" className="btn-secondary" onClick={() => setShowAuthModal(false)}>{t.closeBtn}</button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Profile Modal */}
+      {showEditProfileModal && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h3 className="heading-2" style={{ marginBottom: '1.5rem' }}>Edit Profile</h3>
+            <form onSubmit={handleUpdateProfile}>
+              <div className="form-group">
+                <label className="form-label">{t.lblAge}</label>
+                <input 
+                  type="number" 
+                  className="form-input" 
+                  value={editAge}
+                  onChange={(e) => setEditAge(e.target.value)}
+                  required 
+                />
+              </div>
+              <div className="form-group">
+                <label className="form-label">{t.lblGender}</label>
+                <select 
+                  className="form-input"
+                  value={editGender}
+                  onChange={(e) => setEditGender(e.target.value)}
+                >
+                  <option value="Male">{t.genMale}</option>
+                  <option value="Female">{t.genFemale}</option>
+                  <option value="Other">{t.genOther}</option>
+                </select>
+              </div>
+              <div className="modal-actions" style={{ marginTop: '1.5rem' }}>
+                <button type="button" className="btn-secondary" onClick={() => setShowEditProfileModal(false)}>Cancel</button>
+                <button type="submit" className="btn-primary" disabled={updatingProfile}>
+                  {updatingProfile ? 'Saving...' : 'Save Profile'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
