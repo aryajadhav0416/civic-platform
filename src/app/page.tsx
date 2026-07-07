@@ -102,7 +102,7 @@ export default function Home() {
         setIsVerifyingDoc(false);
       };
       reader.readAsDataURL(docMedia);
-    } catch (_err) {
+    } catch {
       alert("Error verifying document");
       setIsVerifyingDoc(false);
     }
@@ -253,7 +253,7 @@ export default function Home() {
       } else {
         alert("Draft generation failed. Please try again.");
       }
-    } catch (_err) {
+    } catch {
       alert("Error generating draft.");
     } finally {
       setIsDrafting(false);
