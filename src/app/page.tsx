@@ -380,7 +380,7 @@ export default function Home() {
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSend(query)}
             />
-            <button aria-label="Start Voice Input" className="chat-voice-btn" onClick={handleListen} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem', padding: '0 0.5rem', opacity: isListening ? 1 : 0.7, color: isListening ? '#ef4444' : 'inherit' }} title={isListening ? t.btnVoiceListening : t.btnVoiceStart}>
+            <button aria-label="Start Voice Input" className="chat-voice-btn" onClick={handleListen} style={{ position: 'absolute', right: '3.75rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem', padding: '0 0.5rem', opacity: isListening ? 1 : 0.7, color: isListening ? '#ef4444' : 'inherit' }} title={isListening ? t.btnVoiceListening : t.btnVoiceStart}>
               {isListening ? '🛑' : '🎤'}
             </button>
             <button aria-label="Send Message" className="send-button" onClick={() => handleSend(query)} disabled={loading}>

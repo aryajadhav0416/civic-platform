@@ -196,7 +196,7 @@ button {
 .input-field {
   width: 100%;
   padding: 1.25rem;
-  padding-right: 4rem;
+  padding-right: 6rem;
   border-radius: var(--radius-xl);
   border: 1px solid var(--border);
   font-size: 1rem;
