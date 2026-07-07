@@ -23,13 +23,23 @@ export default function Home() {
   const [issueAddress, setIssueAddress] = useState('');
   const [issueMedia, setIssueMedia] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  
+  // Smart Draft State
+  const [draftInput, setDraftInput] = useState('');
+  const [isDrafting, setIsDrafting] = useState(false);
+  const [issueDepartment, setIssueDepartment] = useState('');
 
   // Complaints State
   const [showMyComplaintsModal, setShowMyComplaintsModal] = useState(false);
   const [showResourcesModal, setShowResourcesModal] = useState(false);
-  const [myComplaints, setMyComplaints] = useState<{ id: string, title: string, description: string, status: string, address?: string, image_url?: string }[]>([]);
+  const [myComplaints, setMyComplaints] = useState<{ id: string, title: string, description: string, status: string, address?: string, image_url?: string, upvotes?: number }[]>([]);
   const [trackId, setTrackId] = useState('');
   const [trackResult, setTrackResult] = useState<string | null>(null);
+
+  // AI Document Verification State
+  const [docMedia, setDocMedia] = useState<File | null>(null);
+  const [isVerifyingDoc, setIsVerifyingDoc] = useState(false);
+  const [docResult, setDocResult] = useState<{isValid: boolean, documentType: string, feedback: string} | null>(null);
 
   // New Feature States
   const [isListening, setIsListening] = useState(false);
@@ -37,7 +47,7 @@ export default function Home() {
 
   // Auth & Profile State
   const [user, setUser] = useState<{ id: string } | null>(null);
-  const [profile, setProfile] = useState<{ age: number, gender?: string } | null>(null);
+  const [profile, setProfile] = useState<{ age: number, gender?: string, points?: number } | null>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -56,6 +66,45 @@ export default function Home() {
     const { data, error } = await supabase.from('issues').select('*').order('created_at', { ascending: false });
     if (!error && data) {
       setMyComplaints(data || []);
+    }
+  };
+
+  const handleUpvote = async (issueId: string) => {
+    if (!user) {
+      alert("Please login to upvote.");
+      return;
+    }
+    const issue = myComplaints.find(c => c.id === issueId);
+    if (!issue) return;
+    const currentUpvotes = issue.upvotes || 0;
+    
+    const { error } = await supabase.from('issues').update({ upvotes: currentUpvotes + 1 }).eq('id', issueId);
+    if (!error) {
+      setMyComplaints(prev => prev.map(c => c.id === issueId ? { ...c, upvotes: currentUpvotes + 1 } : c));
+    }
+  };
+
+  const handleVerifyDocument = async () => {
+    if (!docMedia) return alert("Please select a document image.");
+    setIsVerifyingDoc(true);
+    setDocResult(null);
+    try {
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const base64Data = (reader.result as string).split(',')[1];
+        const res = await fetch('/api/ai-document', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ imageBase64: base64Data, mimeType: docMedia.type, language })
+        });
+        const data = await res.json();
+        setDocResult(data);
+        setIsVerifyingDoc(false);
+      };
+      reader.readAsDataURL(docMedia);
+    } catch (_err) {
+      alert("Error verifying document");
+      setIsVerifyingDoc(false);
     }
   };
 
@@ -186,6 +235,31 @@ export default function Home() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const handleDraft = async () => {
+    if (!draftInput.trim()) return;
+    setIsDrafting(true);
+    try {
+      const res = await fetch('/api/ai-draft', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: draftInput, language })
+      });
+      const data = await res.json();
+      if (data.title && data.description) {
+        setIssueTitle(data.title);
+        setIssueDesc(data.description);
+        setIssueDepartment(data.department || '');
+        setDraftInput('');
+      } else {
+        alert("Draft generation failed. Please try again.");
+      }
+    } catch (_err) {
+      alert("Error generating draft.");
+    } finally {
+      setIsDrafting(false);
+    }
+  };
+
   const submitIssue = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!issueTitle || !issueDesc) return alert("Please fill out all fields.");
@@ -202,7 +276,7 @@ export default function Home() {
       }
 
       const { data, error } = await supabase.from('issues').insert([
-        { title: issueTitle, description: issueDesc, address: issueAddress, status: 'Open', image_url: imageUrl }
+        { title: issueTitle, description: issueDesc, address: issueAddress, status: 'Open', image_url: imageUrl, department: issueDepartment }
       ]).select();
 
       if (error) throw error;
@@ -212,6 +286,7 @@ export default function Home() {
       setShowIssueModal(false);
       setIssueTitle('');
       setIssueDesc('');
+      setIssueDepartment('');
       setIssueMedia(null);
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
@@ -252,7 +327,12 @@ export default function Home() {
           </div>
           
           {user ? (
-            <button className="btn-secondary" style={{ padding: '0.5rem 1rem' }} onClick={() => supabase.auth.signOut()}>{t.signOut}</button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              <div style={{ background: '#FEF3C7', color: '#92400E', padding: '0.25rem 0.75rem', borderRadius: '20px', fontWeight: 'bold', fontSize: '0.85rem' }}>
+                🏆 Score: {profile?.points || 0}
+              </div>
+              <button className="btn-secondary" style={{ padding: '0.5rem 1rem' }} onClick={() => supabase.auth.signOut()}>{t.signOut}</button>
+            </div>
           ) : (
             <button className="btn-primary" style={{ padding: '0.5rem 1rem' }} onClick={() => setShowAuthModal(true)}>{t.loginSignup}</button>
           )}
@@ -370,6 +450,24 @@ export default function Home() {
         <div className="modal-overlay">
           <div className="modal-content">
             <h3 className="heading-2" style={{ marginBottom: '1.5rem' }}>{t.modalIssueTitle}</h3>
+            
+            <div className="smart-draft-section" style={{ background: '#F8FAFC', padding: '1rem', borderRadius: '8px', marginBottom: '1.5rem', border: '1px solid #E2E8F0' }}>
+              <label className="form-label">{t.lblDraft}</label>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <input 
+                  type="text" 
+                  className="form-input" 
+                  placeholder={t.phDraft} 
+                  value={draftInput}
+                  onChange={(e) => setDraftInput(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleDraft()}
+                />
+                <button type="button" className="btn-primary" onClick={handleDraft} disabled={isDrafting} style={{ whiteSpace: 'nowrap' }}>
+                  {isDrafting ? <Loader2 size={16} className="animate-spin" /> : '✨ ' + t.btnDraft}
+                </button>
+              </div>
+            </div>
+
             <form onSubmit={submitIssue}>
               <div className="form-group">
                 <label className="form-label">{t.lblTitle}</label>
@@ -382,6 +480,20 @@ export default function Home() {
                   required
                 />
               </div>
+              
+              {issueDepartment && (
+                <div className="form-group">
+                  <label className="form-label" style={{ color: '#059669', fontWeight: 600 }}>✨ {t.lblDept}</label>
+                  <input 
+                    type="text" 
+                    className="form-input" 
+                    value={issueDepartment}
+                    readOnly
+                    style={{ background: '#ECFDF5', color: '#047857', border: '1px solid #34D399' }}
+                  />
+                </div>
+              )}
+
               <div className="form-group">
                 <label className="form-label">{t.lblDesc}</label>
                 <textarea 
@@ -468,7 +580,27 @@ export default function Home() {
                 {t.srvLicense}
               </li>
             </ul>
-            <div className="modal-actions">
+            
+            <div className="doc-verify-section" style={{ background: '#F0FDF4', padding: '1rem', borderRadius: '8px', marginTop: '1.5rem', border: '1px solid #BBF7D0' }}>
+              <h4 style={{ color: '#166534', marginBottom: '0.5rem' }}>📄 AI Document Verification</h4>
+              <p style={{ fontSize: '0.85rem', color: '#15803D', marginBottom: '0.5rem' }}>Upload your ID or Income certificate to verify its validity before applying for schemes.</p>
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                <input type="file" accept="image/*" onChange={(e) => setDocMedia(e.target.files ? e.target.files[0] : null)} style={{ fontSize: '0.8rem' }} />
+                <button type="button" className="btn-primary" onClick={handleVerifyDocument} disabled={isVerifyingDoc || !docMedia} style={{ padding: '0.25rem 0.75rem', fontSize: '0.85rem' }}>
+                  {isVerifyingDoc ? 'Verifying...' : 'Verify Now'}
+                </button>
+              </div>
+              {docResult && (
+                <div style={{ marginTop: '1rem', padding: '0.75rem', borderRadius: '4px', background: docResult.isValid ? '#DCFCE7' : '#FEE2E2', border: `1px solid ${docResult.isValid ? '#86EFAC' : '#FCA5A5'}` }}>
+                  <p style={{ fontWeight: 'bold', color: docResult.isValid ? '#166534' : '#991B1B', marginBottom: '0.25rem' }}>
+                    {docResult.isValid ? '✅ Valid Document' : '❌ Invalid/Unreadable'} ({docResult.documentType})
+                  </p>
+                  <p style={{ fontSize: '0.85rem', color: '#475569' }}>{docResult.feedback}</p>
+                </div>
+              )}
+            </div>
+
+            <div className="modal-actions" style={{ marginTop: '1.5rem' }}>
               <button type="button" className="btn-secondary" onClick={() => setShowServicesModal(false)}>{t.closeBtn}</button>
             </div>
           </div>
@@ -539,11 +671,14 @@ export default function Home() {
                     <h4 style={{ color: '#1E3A8A', marginBottom: '0.25rem' }}>{complaint.title}</h4>
                     <p style={{ fontSize: '0.75rem', color: '#64748B', marginBottom: '0.5rem', fontFamily: 'monospace' }}>ID: {complaint.id}</p>
                     <p style={{ fontSize: '0.9rem', color: '#475569', marginBottom: '0.5rem' }}>{complaint.description}</p>
-                    <div style={{ display: 'flex', gap: '1rem', fontSize: '0.85rem' }}>
+                    <div style={{ display: 'flex', gap: '1rem', fontSize: '0.85rem', alignItems: 'center' }}>
                       <span style={{ fontWeight: 600, color: complaint.status === 'Open' ? '#EAB308' : '#22C55E' }}>
                         {t.statusLabel} {complaint.status}
                       </span>
                       {complaint.address && <span>📍 {complaint.address}</span>}
+                      <button onClick={() => handleUpvote(complaint.id)} style={{ background: '#F1F5F9', border: '1px solid #CBD5E1', padding: '0.2rem 0.5rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        ⬆️ {complaint.upvotes || 0} Upvotes
+                      </button>
                     </div>
                     {complaint.image_url && (
                       <div style={{ marginTop: '0.5rem' }}>
